@@ -2,6 +2,7 @@ export * from "./auth/random-password";
 export * from "./services/admin";
 export * from "./services/user";
 export * from "./services/project";
+export * from "./services/issue";
 export * from "./services/postgres";
 export * from "./services/domain";
 export * from "./services/mariadb";
