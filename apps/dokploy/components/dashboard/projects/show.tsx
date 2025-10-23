@@ -31,12 +31,20 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import {
+	Sheet,
+	SheetContent,
+	SheetDescription,
+	SheetHeader,
+	SheetTitle,
+} from "@/components/ui/sheet";
 import { api } from "@/utils/api";
 import {
 	AlertTriangle,
 	BookIcon,
 	ExternalLinkIcon,
 	FolderInput,
+	ListTodo,
 	Loader2,
 	MoreHorizontalIcon,
 	Search,
@@ -46,6 +54,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { HandleProject } from "./handle-project";
+import { PriorityQueue } from "./priority-queue";
 import { ProjectEnvironment } from "./project-environment";
 
 export const ShowProjects = () => {
@@ -54,6 +63,9 @@ export const ShowProjects = () => {
 	const { data: auth } = api.user.get.useQuery();
 	const { mutateAsync } = api.project.remove.useMutation();
 	const [searchQuery, setSearchQuery] = useState("");
+	const [priorityQueueProjectId, setPriorityQueueProjectId] = useState<
+		string | null
+	>(null);
 
 	const filteredProjects = useMemo(() => {
 		if (!data) return [];
@@ -271,6 +283,19 @@ export const ShowProjects = () => {
 																				<DropdownMenuLabel className="font-normal">
 																					Actions
 																				</DropdownMenuLabel>
+																				<DropdownMenuItem
+																					onClick={(e) => {
+																						e.stopPropagation();
+																						setPriorityQueueProjectId(
+																							project.projectId,
+																						);
+																					}}
+																					className="cursor-pointer space-x-3"
+																				>
+																					<ListTodo className="size-4" />
+																					<span>View Priority Queue</span>
+																				</DropdownMenuItem>
+																				<DropdownMenuSeparator />
 																				<div
 																					onClick={(e) => e.stopPropagation()}
 																				>
@@ -388,6 +413,26 @@ export const ShowProjects = () => {
 					</div>
 				</Card>
 			</div>
+
+			{/* Priority Queue Sheet */}
+			<Sheet
+				open={!!priorityQueueProjectId}
+				onOpenChange={() => setPriorityQueueProjectId(null)}
+			>
+				<SheetContent className="w-full sm:max-w-[700px] overflow-y-auto">
+					<SheetHeader>
+						<SheetTitle>Priority Queue</SheetTitle>
+						<SheetDescription>
+							Issues ranked by urgency and difficulty
+						</SheetDescription>
+					</SheetHeader>
+					<div className="mt-6">
+						{priorityQueueProjectId && (
+							<PriorityQueue projectId={priorityQueueProjectId} />
+						)}
+					</div>
+				</SheetContent>
+			</Sheet>
 		</>
 	);
 };
