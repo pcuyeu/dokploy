@@ -2,6 +2,7 @@ export * from "./application";
 export * from "./postgres";
 export * from "./user";
 export * from "./project";
+export * from "./issue";
 export * from "./domain";
 export * from "./mariadb";
 export * from "./mongo";

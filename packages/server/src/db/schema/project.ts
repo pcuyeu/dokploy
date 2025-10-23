@@ -11,6 +11,7 @@ import { mongo } from "./mongo";
 import { mysql } from "./mysql";
 import { postgres } from "./postgres";
 import { redis } from "./redis";
+import { issues } from "./issue";
 
 export const projects = pgTable("project", {
 	projectId: text("projectId")
@@ -37,6 +38,7 @@ export const projectRelations = relations(projects, ({ many, one }) => ({
 	mongo: many(mongo),
 	redis: many(redis),
 	compose: many(compose),
+	issues: many(issues),
 	organization: one(organization, {
 		fields: [projects.organizationId],
 		references: [organization.id],
