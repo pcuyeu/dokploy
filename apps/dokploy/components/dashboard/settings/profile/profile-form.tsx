@@ -33,7 +33,7 @@ import { Enable2FA } from "./enable-2fa";
 
 const profileSchema = z.object({
 	name: z.string().min(1, "Name is required."),
-	email: z.string(),
+	email: z.string().email("Invalid email address").min(1, "Email is required."),
 	password: z.string().nullable(),
 	currentPassword: z.string().nullable(),
 	image: z.string().optional(),
@@ -181,6 +181,22 @@ export const ProfileForm = () => {
 														<FormControl>
 															<Input
 																placeholder={t("Enter your name")}
+																{...field}
+															/>
+														</FormControl>
+														<FormMessage />
+													</FormItem>
+												)}
+											/>
+											<FormField
+												control={form.control}
+												name="email"
+												render={({ field }) => (
+													<FormItem>
+														<FormLabel>{t("settings.profile.email")}</FormLabel>
+														<FormControl>
+															<Input
+																placeholder={t("settings.profile.email")}
 																{...field}
 															/>
 														</FormControl>
