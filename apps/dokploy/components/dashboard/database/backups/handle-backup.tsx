@@ -61,7 +61,10 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { commonCronExpressions } from "../../application/schedules/handle-schedules";
+import {
+	commonCronExpressions,
+	getDropdownValue,
+} from "../../application/schedules/handle-schedules";
 
 type CacheType = "cache" | "fetch";
 
@@ -603,8 +606,11 @@ export const HandleBackup = ({
 											</FormLabel>
 											<div className="flex flex-col gap-2">
 												<Select
+													value={getDropdownValue(field.value)}
 													onValueChange={(value) => {
-														field.onChange(value);
+														if (value !== "custom") {
+															field.onChange(value);
+														}
 													}}
 												>
 													<FormControl>
@@ -615,7 +621,9 @@ export const HandleBackup = ({
 													<SelectContent>
 														{commonCronExpressions.map((expr) => (
 															<SelectItem key={expr.value} value={expr.value}>
-																{expr.label} ({expr.value})
+																{expr.value === "custom"
+																	? expr.label
+																	: `${expr.label} (${expr.value})`}
 															</SelectItem>
 														))}
 													</SelectContent>

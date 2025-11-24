@@ -56,7 +56,26 @@ export const commonCronExpressions = [
 	{ label: "Every month on the 1st at midnight", value: "0 0 1 * *" },
 	{ label: "Every 15 minutes", value: "*/15 * * * *" },
 	{ label: "Every weekday at midnight", value: "0 0 * * 1-5" },
+	{ label: "Custom", value: "custom" },
 ];
+
+export const getDropdownValue = (inputValue: string): string => {
+	// If input is empty, return empty string (no selection)
+	if (!inputValue) return "";
+
+	// Check if the input matches any preset
+	const matchingPreset = commonCronExpressions.find(
+		(expr) => expr.value === inputValue,
+	);
+
+	// If we found a match, return that preset's value
+	if (matchingPreset) {
+		return matchingPreset.value;
+	}
+
+	// Otherwise, return "custom" to select the Custom option
+	return "custom";
+};
 
 const formSchema = z
 	.object({
@@ -397,8 +416,11 @@ export const HandleSchedules = ({ id, scheduleId, scheduleType }: Props) => {
 									</FormLabel>
 									<div className="flex flex-col gap-2">
 										<Select
+											value={getDropdownValue(field.value)}
 											onValueChange={(value) => {
-												field.onChange(value);
+												if (value !== "custom") {
+													field.onChange(value);
+												}
 											}}
 										>
 											<FormControl>
@@ -409,7 +431,9 @@ export const HandleSchedules = ({ id, scheduleId, scheduleType }: Props) => {
 											<SelectContent>
 												{commonCronExpressions.map((expr) => (
 													<SelectItem key={expr.value} value={expr.value}>
-														{expr.label} ({expr.value})
+														{expr.value === "custom"
+															? expr.label
+															: `${expr.label} (${expr.value})`}
 													</SelectItem>
 												))}
 											</SelectContent>
