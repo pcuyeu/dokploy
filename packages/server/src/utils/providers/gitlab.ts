@@ -128,8 +128,10 @@ export const cloneGitlabRepository = async (
 	const basePath = isCompose ? COMPOSE_PATH : APPLICATIONS_PATH;
 	const outputPath = join(basePath, appName, "code");
 	await recreateDirectory(outputPath);
+	// Extract protocol from gitlabUrl (defaults to https:// for backward compatibility)
+	const protocol = gitlab?.gitlabUrl.match(/^https?:\/\//)?.[0] || "https://";
 	const repoclone = `${gitlab?.gitlabUrl.replace(/^https?:\/\//, "")}/${gitlabPathNamespace}.git`;
-	const cloneUrl = `https://oauth2:${gitlab?.accessToken}@${repoclone}`;
+	const cloneUrl = `${protocol}oauth2:${gitlab?.accessToken}@${repoclone}`;
 
 	try {
 		writeStream.write(`\nCloning Repo ${repoclone} to ${outputPath}: ✅\n`);
@@ -221,8 +223,10 @@ export const getGitlabCloneCommand = async (
 	const basePath = isCompose ? COMPOSE_PATH : APPLICATIONS_PATH;
 	const outputPath = join(basePath, appName, "code");
 	await recreateDirectory(outputPath);
+	// Extract protocol from gitlabUrl (defaults to https:// for backward compatibility)
+	const protocol = gitlab?.gitlabUrl.match(/^https?:\/\//)?.[0] || "https://";
 	const repoclone = `${gitlab?.gitlabUrl.replace(/^https?:\/\//, "")}/${gitlabPathNamespace}.git`;
-	const cloneUrl = `https://oauth2:${gitlab?.accessToken}@${repoclone}`;
+	const cloneUrl = `${protocol}oauth2:${gitlab?.accessToken}@${repoclone}`;
 
 	const cloneCommand = `
 rm -rf ${outputPath};
@@ -343,9 +347,10 @@ export const cloneRawGitlabRepository = async (entity: Compose) => {
 	const outputPath = join(basePath, appName, "code");
 	await recreateDirectory(outputPath);
 	const gitlabUrl = gitlabProvider.gitlabUrl;
-	// What happen with oauth in self hosted instances?
+	// Extract protocol from gitlabUrl (defaults to https:// for backward compatibility)
+	const protocol = gitlabUrl.match(/^https?:\/\//)?.[0] || "https://";
 	const repoclone = `${gitlabUrl.replace(/^https?:\/\//, "")}/${gitlabPathNamespace}.git`;
-	const cloneUrl = `https://oauth2:${gitlabProvider?.accessToken}@${repoclone}`;
+	const cloneUrl = `${protocol}oauth2:${gitlabProvider?.accessToken}@${repoclone}`;
 
 	try {
 		const cloneArgs = [
@@ -392,8 +397,10 @@ export const cloneRawGitlabRepositoryRemote = async (compose: Compose) => {
 	await refreshGitlabToken(gitlabId);
 	const basePath = COMPOSE_PATH;
 	const outputPath = join(basePath, appName, "code");
+	// Extract protocol from gitlabUrl (defaults to https:// for backward compatibility)
+	const protocol = gitlabProvider.gitlabUrl.match(/^https?:\/\//)?.[0] || "https://";
 	const repoclone = `${gitlabProvider.gitlabUrl.replace(/^https?:\/\//, "")}/${gitlabPathNamespace}.git`;
-	const cloneUrl = `https://oauth2:${gitlabProvider?.accessToken}@${repoclone}`;
+	const cloneUrl = `${protocol}oauth2:${gitlabProvider?.accessToken}@${repoclone}`;
 	try {
 		const command = `
 			rm -rf ${outputPath};
