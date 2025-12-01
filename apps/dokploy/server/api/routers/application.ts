@@ -298,7 +298,12 @@ export const applicationRouter = createTRPCRouter({
 		}),
 
 	redeploy: protectedProcedure
-		.input(apiFindOneApplication)
+		.input(
+			apiFindOneApplication.extend({
+				title: z.string().optional(),
+				description: z.string().optional(),
+			}),
+		)
 		.mutation(async ({ input, ctx }) => {
 			const application = await findApplicationById(input.applicationId);
 			if (
@@ -311,8 +316,8 @@ export const applicationRouter = createTRPCRouter({
 			}
 			const jobData: DeploymentJob = {
 				applicationId: input.applicationId,
-				titleLog: "Rebuild deployment",
-				descriptionLog: "",
+				titleLog: input.title ?? "Rebuild deployment",
+				descriptionLog: input.description ?? "",
 				type: "redeploy",
 				applicationType: "application",
 				server: !!application.serverId,
@@ -648,7 +653,12 @@ export const applicationRouter = createTRPCRouter({
 			return true;
 		}),
 	deploy: protectedProcedure
-		.input(apiFindOneApplication)
+		.input(
+			apiFindOneApplication.extend({
+				title: z.string().optional(),
+				description: z.string().optional(),
+			}),
+		)
 		.mutation(async ({ input, ctx }) => {
 			const application = await findApplicationById(input.applicationId);
 			if (
@@ -661,8 +671,8 @@ export const applicationRouter = createTRPCRouter({
 			}
 			const jobData: DeploymentJob = {
 				applicationId: input.applicationId,
-				titleLog: "Manual deployment",
-				descriptionLog: "",
+				titleLog: input.title ?? "Manual deployment",
+				descriptionLog: input.description ?? "",
 				type: "deploy",
 				applicationType: "application",
 				server: !!application.serverId,

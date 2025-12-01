@@ -36,7 +36,7 @@ export default async function handler(
 			return;
 		}
 
-		const deploymentTitle = extractCommitMessage(req.headers, req.body);
+		const deploymentTitle = req.body.title ?? extractCommitMessage(req.headers, req.body);
 		const deploymentHash = extractHash(req.headers, req.body);
 
 		const sourceType = application.sourceType;
@@ -182,7 +182,7 @@ export default async function handler(
 			const jobData: DeploymentJob = {
 				applicationId: application.applicationId as string,
 				titleLog: deploymentTitle,
-				descriptionLog: `Hash: ${deploymentHash}`,
+				descriptionLog: req.body.description ?? `Hash: ${deploymentHash}`,
 				type: "deploy",
 				applicationType: "application",
 				server: !!application.serverId,

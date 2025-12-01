@@ -43,7 +43,7 @@ export default async function handler(
 			return;
 		}
 
-		const deploymentTitle = extractCommitMessage(req.headers, req.body);
+		const deploymentTitle = req.body.title ?? extractCommitMessage(req.headers, req.body);
 		const deploymentHash = extractHash(req.headers, req.body);
 		const sourceType = composeResult.sourceType;
 
@@ -170,7 +170,7 @@ export default async function handler(
 				titleLog: deploymentTitle,
 				type: "deploy",
 				applicationType: "compose",
-				descriptionLog: `Hash: ${deploymentHash}`,
+				descriptionLog: req.body.description ?? `Hash: ${deploymentHash}`,
 				server: !!composeResult.serverId,
 			};
 
