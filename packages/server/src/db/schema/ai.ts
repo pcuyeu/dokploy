@@ -11,7 +11,7 @@ export const ai = pgTable("ai", {
 		.$defaultFn(() => nanoid()),
 	name: text("name").notNull(),
 	apiUrl: text("apiUrl").notNull(),
-	apiKey: text("apiKey").notNull(),
+	apiKey: text("apiKey"),
 	model: text("model").notNull(),
 	isEnabled: boolean("isEnabled").notNull().default(true),
 	organizationId: text("organizationId")
@@ -32,7 +32,7 @@ export const aiRelations = relations(ai, ({ one }) => ({
 const createSchema = createInsertSchema(ai, {
 	name: z.string().min(1, { message: "Name is required" }),
 	apiUrl: z.string().url({ message: "Please enter a valid URL" }),
-	apiKey: z.string().min(1, { message: "API Key is required" }),
+	apiKey: z.string().min(1).optional(),
 	model: z.string().min(1, { message: "Model is required" }),
 	isEnabled: z.boolean().optional(),
 });
@@ -45,7 +45,10 @@ export const apiCreateAi = createSchema
 		model: true,
 		isEnabled: true,
 	})
-	.required();
+	.required()
+	.extend({
+		apiKey: z.string().min(1).optional(),
+	});
 
 export const apiUpdateAi = createSchema
 	.partial()

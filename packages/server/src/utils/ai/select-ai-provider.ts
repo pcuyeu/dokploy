@@ -7,7 +7,7 @@ import { createOpenAI } from "@ai-sdk/openai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { createOllama } from "ollama-ai-provider";
 
-function getProviderName(apiUrl: string) {
+export function getProviderName(apiUrl: string) {
 	if (apiUrl.includes("api.openai.com")) return "openai";
 	if (apiUrl.includes("azure.com")) return "azure";
 	if (apiUrl.includes("api.anthropic.com")) return "anthropic";
@@ -20,59 +20,63 @@ function getProviderName(apiUrl: string) {
 	return "custom";
 }
 
-export function selectAIProvider(config: { apiUrl: string; apiKey: string }) {
+export function isOllamaProvider(apiUrl: string): boolean {
+	return getProviderName(apiUrl) === "ollama";
+}
+
+export function selectAIProvider(config: { apiUrl: string; apiKey?: string | null }) {
 	const providerName = getProviderName(config.apiUrl);
+	const apiKey = config.apiKey ?? "";
 
 	switch (providerName) {
 		case "openai":
 			return createOpenAI({
-				apiKey: config.apiKey,
+				apiKey,
 				baseURL: config.apiUrl,
 			});
 		case "azure":
 			return createAzure({
-				apiKey: config.apiKey,
+				apiKey,
 				baseURL: config.apiUrl,
 			});
 		case "anthropic":
 			return createAnthropic({
-				apiKey: config.apiKey,
+				apiKey,
 				baseURL: config.apiUrl,
 			});
 		case "cohere":
 			return createCohere({
 				baseURL: config.apiUrl,
-				apiKey: config.apiKey,
+				apiKey,
 			});
 		case "perplexity":
 			return createOpenAICompatible({
 				name: "perplexity",
 				baseURL: config.apiUrl,
 				headers: {
-					Authorization: `Bearer ${config.apiKey}`,
+					Authorization: `Bearer ${apiKey}`,
 				},
 			});
 		case "mistral":
 			return createMistral({
 				baseURL: config.apiUrl,
-				apiKey: config.apiKey,
+				apiKey,
 			});
 		case "ollama":
 			return createOllama({
-				// optional settings, e.g.
 				baseURL: config.apiUrl,
 			});
 		case "deepinfra":
 			return createDeepInfra({
 				baseURL: config.apiUrl,
-				apiKey: config.apiKey,
+				apiKey,
 			});
 		case "custom":
 			return createOpenAICompatible({
 				name: "custom",
 				baseURL: config.apiUrl,
 				headers: {
-					Authorization: `Bearer ${config.apiKey}`,
+					Authorization: `Bearer ${apiKey}`,
 				},
 			});
 		default:

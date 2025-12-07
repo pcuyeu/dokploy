@@ -1,6 +1,7 @@
 "use client";
 import { AlertBlock } from "@/components/shared/alert-block";
 import { Button } from "@/components/ui/button";
+import { isOllamaProvider } from "@dokploy/server";
 import {
 	Dialog,
 	DialogContent,
@@ -35,13 +36,18 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
-const Schema = z.object({
-	name: z.string().min(1, { message: "Name is required" }),
-	apiUrl: z.string().url({ message: "Please enter a valid URL" }),
-	apiKey: z.string().min(1, { message: "API Key is required" }),
-	model: z.string().min(1, { message: "Model is required" }),
-	isEnabled: z.boolean(),
-});
+const Schema = z
+	.object({
+		name: z.string().min(1, { message: "Name is required" }),
+		apiUrl: z.string().url({ message: "Please enter a valid URL" }),
+		apiKey: z.string().optional(),
+		model: z.string().min(1, { message: "Model is required" }),
+		isEnabled: z.boolean(),
+	})
+	.refine((data) => isOllamaProvider(data.apiUrl) || (data.apiKey && data.apiKey.length > 0), {
+		message: "API Key is required for non-Ollama providers",
+		path: ["apiKey"],
+	});
 
 type Schema = z.infer<typeof Schema>;
 
@@ -89,6 +95,8 @@ export const HandleAi = ({ aiId }: Props) => {
 	const apiUrl = form.watch("apiUrl");
 	const apiKey = form.watch("apiKey");
 
+	const isOllama = apiUrl ? isOllamaProvider(apiUrl) : false;
+
 	const { data: models, isLoading: isLoadingServerModels } =
 		api.ai.getModels.useQuery(
 			{
@@ -96,7 +104,7 @@ export const HandleAi = ({ aiId }: Props) => {
 				apiKey: apiKey ?? "",
 			},
 			{
-				enabled: !!apiUrl && !!apiKey,
+				enabled: !!apiUrl && (isOllama || !!apiKey),
 				onError: (error) => {
 					setError(`Failed to fetch models: ${error.message}`);
 				},
@@ -196,12 +204,16 @@ export const HandleAi = ({ aiId }: Props) => {
 							name="apiKey"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>API Key</FormLabel>
+									<FormLabel>
+										API Key {isOllama && <span className="text-muted-foreground">(optional)</span>}
+									</FormLabel>
 									<FormControl>
-										<Input type="password" placeholder="sk-..." {...field} />
+										<Input type="password" placeholder={isOllama ? "Not required for Ollama" : "sk-..."} {...field} />
 									</FormControl>
 									<FormDescription>
-										Your API key for authentication
+										{isOllama
+											? "Ollama runs locally and doesn't require an API key"
+											: "Your API key for authentication"}
 									</FormDescription>
 									<FormMessage />
 								</FormItem>
@@ -243,6 +255,12 @@ export const HandleAi = ({ aiId }: Props) => {
 									</FormItem>
 								)}
 							/>
+						)}
+
+						{!isLoadingServerModels && models && models.length === 0 && (
+							<AlertBlock type="warning">
+								Model list is empty. Please check your API URL and credentials.
+							</AlertBlock>
 						)}
 
 						<FormField

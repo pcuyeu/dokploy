@@ -28,6 +28,7 @@ import {
 import {
 	type Model,
 	getProviderHeaders,
+	isOllamaProvider,
 } from "@dokploy/server/utils/ai/select-ai-provider";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
@@ -47,11 +48,13 @@ export const aiRouter = createTRPCRouter({
 		}),
 
 	getModels: protectedProcedure
-		.input(z.object({ apiUrl: z.string().min(1), apiKey: z.string().min(1) }))
+		.input(z.object({ apiUrl: z.string().min(1), apiKey: z.string().optional() }))
 		.query(async ({ input }) => {
 			try {
-				const headers = getProviderHeaders(input.apiUrl, input.apiKey);
-				const response = await fetch(`${input.apiUrl}/models`, { headers });
+				const isOllama = isOllamaProvider(input.apiUrl);
+				const endpoint = isOllama ? "/api/tags" : "/models";
+				const headers = isOllama ? {} : getProviderHeaders(input.apiUrl, input.apiKey ?? "");
+				const response = await fetch(`${input.apiUrl}${endpoint}`, { headers });
 
 				if (!response.ok) {
 					const errorText = await response.text();
