@@ -1,7 +1,10 @@
 "use client";
 import { AlertBlock } from "@/components/shared/alert-block";
 import { Button } from "@/components/ui/button";
-import { isOllamaProvider } from "@dokploy/server";
+
+const isOllamaProvider = (apiUrl: string): boolean => {
+	return apiUrl.includes("localhost:11434") || apiUrl.includes("ollama");
+};
 import {
 	Dialog,
 	DialogContent,
