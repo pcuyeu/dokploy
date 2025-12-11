@@ -29,6 +29,7 @@ import {
 	type Model,
 	getProviderHeaders,
 	isOllamaProvider,
+	normalizeApiUrl,
 } from "@dokploy/server/utils/ai/select-ai-provider";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
@@ -48,13 +49,27 @@ export const aiRouter = createTRPCRouter({
 		}),
 
 	getModels: protectedProcedure
-		.input(z.object({ apiUrl: z.string().min(1), apiKey: z.string().optional() }))
+		.input(
+			z.object({ apiUrl: z.string().min(1), apiKey: z.string().optional() }),
+		)
 		.query(async ({ input }) => {
 			try {
-				const isOllama = isOllamaProvider(input.apiUrl);
+				// Validate the URL format first
+				try {
+					new URL(input.apiUrl);
+				} catch {
+					throw new Error(
+						`Invalid URL format: "${input.apiUrl}". Please enter a valid URL like http://localhost:11434 for Ollama or https://api.openai.com/v1 for OpenAI.`,
+					);
+				}
+
+				const baseUrl = normalizeApiUrl(input.apiUrl);
+				const isOllama = isOllamaProvider(baseUrl);
 				const endpoint = isOllama ? "/api/tags" : "/models";
-				const headers = isOllama ? {} : getProviderHeaders(input.apiUrl, input.apiKey ?? "");
-				const response = await fetch(`${input.apiUrl}${endpoint}`, { headers });
+				const headers = isOllama
+					? {}
+					: getProviderHeaders(baseUrl, input.apiKey ?? "");
+				const response = await fetch(`${baseUrl}${endpoint}`, { headers });
 
 				if (!response.ok) {
 					const errorText = await response.text();

@@ -14,17 +14,27 @@ export function getProviderName(apiUrl: string) {
 	if (apiUrl.includes("api.cohere.ai")) return "cohere";
 	if (apiUrl.includes("api.perplexity.ai")) return "perplexity";
 	if (apiUrl.includes("api.mistral.ai")) return "mistral";
-	if (apiUrl.includes("localhost:11434") || apiUrl.includes("ollama"))
+	// Ollama detection: check for default port, localhost variations, or "ollama" in URL
+	if (apiUrl.includes(":11434") || apiUrl.includes("ollama")) {
 		return "ollama";
+	}
 	if (apiUrl.includes("api.deepinfra.com")) return "deepinfra";
 	return "custom";
+}
+
+// Normalize URL by removing trailing slashes
+export function normalizeApiUrl(apiUrl: string): string {
+	return apiUrl.replace(/\/+$/, "");
 }
 
 export function isOllamaProvider(apiUrl: string): boolean {
 	return getProviderName(apiUrl) === "ollama";
 }
 
-export function selectAIProvider(config: { apiUrl: string; apiKey?: string | null }) {
+export function selectAIProvider(config: {
+	apiUrl: string;
+	apiKey?: string | null;
+}) {
 	const providerName = getProviderName(config.apiUrl);
 	const apiKey = config.apiKey ?? "";
 

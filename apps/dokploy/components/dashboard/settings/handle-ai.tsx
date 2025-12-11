@@ -3,7 +3,7 @@ import { AlertBlock } from "@/components/shared/alert-block";
 import { Button } from "@/components/ui/button";
 
 const isOllamaProvider = (apiUrl: string): boolean => {
-	return apiUrl.includes("localhost:11434") || apiUrl.includes("ollama");
+	return apiUrl.includes(":11434") || apiUrl.includes("ollama");
 };
 import {
 	Dialog,
@@ -47,10 +47,14 @@ const Schema = z
 		model: z.string().min(1, { message: "Model is required" }),
 		isEnabled: z.boolean(),
 	})
-	.refine((data) => isOllamaProvider(data.apiUrl) || (data.apiKey && data.apiKey.length > 0), {
-		message: "API Key is required for non-Ollama providers",
-		path: ["apiKey"],
-	});
+	.refine(
+		(data) =>
+			isOllamaProvider(data.apiUrl) || (data.apiKey && data.apiKey.length > 0),
+		{
+			message: "API Key is required for non-Ollama providers",
+			path: ["apiKey"],
+		},
+	);
 
 type Schema = z.infer<typeof Schema>;
 
@@ -80,7 +84,7 @@ export const HandleAi = ({ aiId }: Props) => {
 			name: "",
 			apiUrl: "",
 			apiKey: "",
-			model: "gpt-3.5-turbo",
+			model: "",
 			isEnabled: true,
 		},
 	});
@@ -88,9 +92,9 @@ export const HandleAi = ({ aiId }: Props) => {
 	useEffect(() => {
 		form.reset({
 			name: data?.name ?? "",
-			apiUrl: data?.apiUrl ?? "https://api.openai.com/v1",
+			apiUrl: data?.apiUrl ?? "",
 			apiKey: data?.apiKey ?? "",
-			model: data?.model ?? "gpt-3.5-turbo",
+			model: data?.model ?? "",
 			isEnabled: data?.isEnabled ?? true,
 		});
 	}, [aiId, form, data]);
@@ -99,6 +103,13 @@ export const HandleAi = ({ aiId }: Props) => {
 	const apiKey = form.watch("apiKey");
 
 	const isOllama = apiUrl ? isOllamaProvider(apiUrl) : false;
+
+	// Clear error when dialog closes/opens
+	useEffect(() => {
+		if (!open) {
+			setError(null);
+		}
+	}, [open]);
 
 	const { data: models, isLoading: isLoadingServerModels } =
 		api.ai.getModels.useQuery(
@@ -175,7 +186,11 @@ export const HandleAi = ({ aiId }: Props) => {
 								<FormItem>
 									<FormLabel>Name</FormLabel>
 									<FormControl>
-										<Input placeholder="My OpenAI Config" {...field} />
+										<Input
+											placeholder="My OpenAI Config"
+											autoComplete="off"
+											{...field}
+										/>
 									</FormControl>
 									<FormDescription>
 										A name to identify this configuration
@@ -192,36 +207,45 @@ export const HandleAi = ({ aiId }: Props) => {
 								<FormItem>
 									<FormLabel>API URL</FormLabel>
 									<FormControl>
-										<Input placeholder="https://api.openai.com/v1" {...field} />
+										<Input
+											placeholder="https://api.openai.com/v1"
+											autoComplete="off"
+											type="url"
+											{...field}
+										/>
 									</FormControl>
 									<FormDescription>
-										The base URL for your AI provider's API
+										The base URL for your AI provider's API (e.g.,
+										http://localhost:11434 for Ollama)
 									</FormDescription>
 									<FormMessage />
 								</FormItem>
 							)}
 						/>
 
-						<FormField
-							control={form.control}
-							name="apiKey"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>
-										API Key {isOllama && <span className="text-muted-foreground">(optional)</span>}
-									</FormLabel>
-									<FormControl>
-										<Input type="password" placeholder={isOllama ? "Not required for Ollama" : "sk-..."} {...field} />
-									</FormControl>
-									<FormDescription>
-										{isOllama
-											? "Ollama runs locally and doesn't require an API key"
-											: "Your API key for authentication"}
-									</FormDescription>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
+						{!isOllama && (
+							<FormField
+								control={form.control}
+								name="apiKey"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>API Key</FormLabel>
+										<FormControl>
+											<Input
+												type="password"
+												placeholder="sk-..."
+												autoComplete="off"
+												{...field}
+											/>
+										</FormControl>
+										<FormDescription>
+											Your API key for authentication
+										</FormDescription>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+						)}
 
 						{isLoadingServerModels && (
 							<span className="text-sm text-muted-foreground">
