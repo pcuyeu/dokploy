@@ -1,0 +1,48 @@
+version: '3.6'
+
+# HTTP-only GitLab instance for testing Issue #18
+# Run with: docker-compose -f docker-compose.gitlab-http.yml up -d
+
+services:
+  gitlab-http:
+    image: 'gitlab/gitlab-ce:latest'
+    container_name: gitlab-http-test
+    hostname: 'gitlab.test.local'
+    privileged: true
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        # HTTP only configuration
+        external_url 'http://gitlab.test.local:8080'
+
+        # Disable HTTPS
+        nginx['listen_port'] = 80
+        nginx['listen_https'] = false
+        nginx['redirect_http_to_https'] = false
+
+        # Speed up startup for testing
+        gitlab_rails['initial_root_password'] = 'testpassword123'
+
+        # Disable features we don't need for testing
+        prometheus_monitoring['enable'] = false
+
+    ports:
+      - '8080:80'       # HTTP access
+      - '2222:22'       # Git SSH access
+    volumes:
+      - 'gitlab-config:/etc/gitlab'
+      - 'gitlab-logs:/var/log/gitlab'
+      - 'gitlab-data:/var/opt/gitlab'
+    shm_size: '256m'
+    ulimits:
+      sigpending: 62793
+      nproc: 131072
+      nofile:
+        soft: 60000
+        hard: 60000
+      core: 0
+    restart: unless-stopped
+
+volumes:
+  gitlab-config:
+  gitlab-logs:
+  gitlab-data:
